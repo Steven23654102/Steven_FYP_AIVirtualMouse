@@ -17,6 +17,10 @@ clocX, clocY = 0, 0
 # 拖拽状态变量
 dragging = False  # 是否正在拖拽
 
+# 滚动状态变量
+scrolling = False  # 是否在滚动模式
+scroll_start_time = None  # 记录滚动的开始时间
+
 # 初始化摄像头
 cap = cv2.VideoCapture(0)
 cap.set(3, wCam)
@@ -89,6 +93,26 @@ while True:
         if length_thumb_index < 30:
             pyautogui.rightClick()
             time.sleep(0.3)  # 防止多次触发
+
+        # 8. **滚动模式（食指和中指都伸出超过3秒）**
+        if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 0 and fingers[4] == 0:
+            if scroll_start_time is None:
+                scroll_start_time = time.time()  # 记录开始时间
+            elif time.time() - scroll_start_time > 3:  # 超过3秒
+                scrolling = True
+                print("进入滚动模式")
+        else:
+            scroll_start_time = None
+            scrolling = False
+
+        # 9. **执行滚动**
+        if scrolling:
+            if y1 < y2 - 20:  # 食指比中指高（手向上移动）
+                pyautogui.scroll(5)  # 向上滚动
+                print("向上滚动")
+            elif y2 < y1 - 20:  # 中指比食指高（手向下移动）
+                pyautogui.scroll(-5)  # 向下滚动
+                print("向下滚动")
 
     # 计算 FPS
     cTime = time.time()
